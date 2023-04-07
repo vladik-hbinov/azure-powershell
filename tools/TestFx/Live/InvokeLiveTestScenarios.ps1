@@ -14,11 +14,48 @@ param (
 
 $srcDir = Join-Path -Path $RepoLocation -ChildPath "src"
 $liveScenarios = Get-ChildItem -Path $srcDir -Directory -Exclude "Accounts" | Get-ChildItem -Directory -Filter "LiveTests" -Recurse | Get-ChildItem -File -Filter "TestLiveScenarios.ps1" | Select-Object -ExpandProperty FullName
-$liveScenarios | ForEach-Object {
-    $moduleName = [regex]::match($_, "[\\|\/]src[\\|\/](?<ModuleName>[a-zA-Z]+)[\\|\/]").Groups["ModuleName"].Value
-    Import-Module "./tools/TestFx/Assert.ps1" -Force
-    Import-Module "./tools/TestFx/Live/LiveTestUtility.psd1" -ArgumentList $moduleName, $RunPlatform, $DataLocation -Force
-    . $_
+
+$rsp = [runspacefactory]::CreateRunspacePool(1, [int]$env:NUMBER_OF_PROCESSORS + 1)
+[void]$rsp.Open()
+
+$liveJobs = $liveScenarios | ForEach-Object {
+    $ps = [powershell]::Create()
+    $ps.RunspacePool = $rsp
+    $ps.AddScript({
+            param (
+                [string] $RunPlatform,
+                [string] $RepoLocation,
+                [string] $DataLocation,
+                [string] $LiveScenarioScript
+            )
+
+            $moduleName = [regex]::match($LiveScenarioScript, "[\\|\/]src[\\|\/](?<ModuleName>[a-zA-Z]+)[\\|\/]").Groups["ModuleName"].Value
+            Import-Module "./tools/TestFx/Assert.ps1" -Force
+            Import-Module "./tools/TestFx/Live/LiveTestUtility.psd1" -ArgumentList $moduleName, $RunPlatform, $DataLocation -Force
+            . $LiveScenarioScript
+        }).AddParameter("RepoLocation", $RepoLocation).AddParameter("DataLocation", $DataLocation).AddParameter("LiveScenarioScript", $_.FullName)
+
+    [PSCustomObject]@{
+        Id          = $ps.InstanceId
+        Instance    = $ps
+        AsyncResult = $ps.BeginInvoke()
+    } | Add-Member State -MemberType ScriptProperty -PassThru -Value {
+        $this.Instance.InvocationStateInfo.State
+    }
+}
+
+while ($liveJobs.State -contains "Running") {
+    Start-Sleep -Seconds 30
+}
+
+$liveJobs | ForEach-Object {
+    if ($null -ne $_.Instance) {
+        Write-Host "##[group]Job $($_.Id) complete information:"
+        $_.Instance.EndInvoke($_.AsyncResult)
+        $_.Instance.Streams | Select-Object -Property @{ Name = "FullOutput"; Expression = { $_.Information, $_.Warning, $_.Error, $_.Debug } } | Select-Object -ExpandProperty FullOutput
+        Write-Host "##[endgroup]"
+        $_.Instance.Dispose()
+    }
 }
 
 $accountsDir = Join-Path -Path $srcDir -ChildPath "Accounts"
