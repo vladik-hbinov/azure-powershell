@@ -22,41 +22,65 @@ $liveJobs = $liveScenarios | ForEach-Object {
     $ps = [powershell]::Create()
     $ps.RunspacePool = $rsp
     $ps.AddScript({
-            param (
-                [string] $RunPlatform,
-                [string] $RepoLocation,
-                [string] $DataLocation,
-                [string] $LiveScenarioScript
-            )
+        param (
+            [string] $RunPlatform,
+            [string] $RepoLocation,
+            [string] $DataLocation,
+            [string] $LiveScenarioScript
+        )
 
-            $moduleName = [regex]::match($LiveScenarioScript, "[\\|\/]src[\\|\/](?<ModuleName>[a-zA-Z]+)[\\|\/]").Groups["ModuleName"].Value
-            Import-Module "./tools/TestFx/Assert.ps1" -Force
-            Import-Module "./tools/TestFx/Live/LiveTestUtility.psd1" -ArgumentList $moduleName, $RunPlatform, $DataLocation -Force
-            . $LiveScenarioScript
-        }).AddParameter("RepoLocation", $RepoLocation).AddParameter("DataLocation", $DataLocation).AddParameter("LiveScenarioScript", $_.FullName)
+        Write-Host "Run platform : $RunPlatform"
+        Write-Host "Repo location : $RepoLocation"
+        Write-Host "Data location : $DataLocation"
+        Write-Host "Live test script : $LiveScenarioScript"
+        $moduleName = [regex]::match($LiveScenarioScript, "[\\|\/]src[\\|\/](?<ModuleName>[a-zA-Z]+)[\\|\/]").Groups["ModuleName"].Value
+        Import-Module "./tools/TestFx/Assert.ps1" -Force
+        Import-Module "./tools/TestFx/Live/LiveTestUtility.psd1" -ArgumentList $moduleName, $RunPlatform, $DataLocation -Force
+        . $LiveScenarioScript
+    }).AddParameter("RunPlatform", $RunPlatform).AddParameter("RepoLocation", $RepoLocation).AddParameter("DataLocation", $DataLocation).AddParameter("LiveScenarioScript", $_) | Out-Null
 
     [PSCustomObject]@{
         Id          = $ps.InstanceId
         Instance    = $ps
-        AsyncResult = $ps.BeginInvoke()
+        AsyncHandle = $ps.BeginInvoke()
     } | Add-Member State -MemberType ScriptProperty -PassThru -Value {
         $this.Instance.InvocationStateInfo.State
     }
 }
 
-while ($liveJobs.State -contains "Running") {
-    Start-Sleep -Seconds 30
+$totalJobs = $liveJobs
+while ($totalJobs.Count -gt 0) {
+    Start-Sleep -Seconds 5
+    $runningJobs = @()
+    $completedJobs = @()
+    foreach ($job in $totalJobs) {
+        if ($job.State -match "Completed|Failed|Stopped|Suspended|Disconnected") {
+            $completedJobs += $job
+        }
+        else {
+            $runningJobs += $job
+        }
+    }
+
+    if ($completedJobs.Count -gt 0) {
+        $completedJobs | ForEach-Object {
+            if ($null -ne $_.Instance) {
+                $result = $_.Instance.EndInvoke($_.AsyncHandle)
+                $result
+                $_.Instance.Streams | Select-Object -Property @{ Name = "FullOutput"; Expression = { $_.Information, $_.Warning, $_.Error, $_.Debug } } | Select-Object -ExpandProperty FullOutput
+                $_.Instance.Dispose()
+            }
+        }
+    }
+
+    $totalJobs = $runningJobs
 }
 
 $liveJobs | ForEach-Object {
-    if ($null -ne $_.Instance) {
-        Write-Host "##[group]Job $($_.Id) complete information:"
-        $_.Instance.EndInvoke($_.AsyncResult)
-        $_.Instance.Streams | Select-Object -Property @{ Name = "FullOutput"; Expression = { $_.Information, $_.Warning, $_.Error, $_.Debug } } | Select-Object -ExpandProperty FullOutput
-        Write-Host "##[endgroup]"
-        $_.Instance.Dispose()
-    }
+
 }
+
+$rsp.Dispose()
 
 $accountsDir = Join-Path -Path $srcDir -ChildPath "Accounts"
 $accountsLiveScenario = Get-ChildItem -Path $accountsDir -Directory -Filter "LiveTests" -Recurse | Get-ChildItem -File -Filter "TestLiveScenarios.ps1" | Select-Object -ExpandProperty FullName
