@@ -64,6 +64,7 @@ jobs:
       artifact: BuildArtifacts
 
 - job: TestCoverage
+  dependsOn: Build
   timeoutInMinutes: 600
   pool:
     vmImage: ${{ parameters.macOSPoolName }}
