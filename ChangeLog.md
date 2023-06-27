@@ -1,3 +1,142 @@
+## 10.1.0 - July 2023
+#### Az.Accounts 2.12.4
+* Changed 'gallery' property to be optional in ARM metadata of 'Set-AzEnvironment' and 'Add-AzEnvironment'[#22037].
+
+#### Az.Aks 5.5.1
+* Fixed the issue of handling 'nextLink' in 'Set-AzAksCluster'. [#21846]
+* Fixed the issue of parameter 'AcrNameToDetach' in 'Set-AzAksCluster' due to role assignment name is a guid.
+* Added breaking change message for parameter 'DockerBridgeCidr' in 'New-AzAksCluster'.
+* Supported the value 'AzureLinux' for parameter '-NodeOsSKU' in 'New-AzAksCluster' and parameter '-OsSKU' in 'New-AzAksNodePool'.
+* Fixed the issue of '-DisableLocalAccount' for 'Set-AzAksCluster'. [#21835]
+
+#### Az.Billing 2.0.3
+* Fixed page continuation for Consumption PriceSheet cmdlet
+
+#### Az.Cdn 3.1.0
+* Upgraded API version to 2023-05-01
+* Fixed known issue for 'Update-AzCdnProfile', 'Update-AzFrontDoorCdnProfile', 'Remove-AzCdnProfile', 'Remove-AzCdnProfile'
+
+#### Az.CognitiveServices 1.14.0
+* Updated CognitiveServices PowerShell to use 2023-05-01 version.
+
+#### Az.Compute 6.1.0
+* Added useful examples to the 'New-AzVMConfig' help doc.
+* Added new 'ResourceId' parameter to the 'Get-AzVmss' cmdlet. 
+* Added '-SecurityType', '-EnableSecureBoot' and '-EnableVtpm' parameters to 'New-AzVm','New-AzVmConfig', 'New-AzVmss', 'New-AzVmssConfig', 'Update-AzVm' and 'Update-AzVmss' cmdlets.
+* Configured parameter flags '-EnableSecureBoot' and '-EnableVtpm' to default to True for TrustedLaunch and ConfidentialVM values for the '-SecurityType' parameter in 'New-AzVm','New-AzVmConfig', 'New-AzVmss', 'New-AzVmssConfig', 'Update-AzVm' and 'Update-AzVmss' cmdlets.
+* Added a message to the user when they provide an outdated image alias to 'New-AzVM' via the '-Image' parameter or to 'New-AzVmss' via the '-ImageName' parameter.
+  The non-versioned image aliases are being updated to versioned values in October 2023, and this message is to help urge customers to use the newer versioned image alias values.
+* Changed the installation behavior for the 'GuestAttestation' extension in 'New-AzVM' and 'New-AzVmss' to set the property 'EnableAutomaticUpgrade' to true.
+* Changes to 'Set-AzVMOperatingSystem' to correct unnecessary mandatory parameters.
+
+#### Az.CosmosDB 1.11.1
+* Locations show response now includes status, isSubscriptionRegionAccessAllowedForRegular and isSubscriptionRegionAccessAllowedForAz properties
+
+#### Az.Databricks 1.6.0
+* Added some parameters in the 'New-AzDatabricksWorkspace' and 'Update-AzDatabricksWorkspace'.
+    - 'ManagedDiskKeyVaultPropertiesKeyName'
+    - 'ManagedDiskKeyVaultPropertiesKeyVaultUri'
+    - 'ManagedDiskKeyVaultPropertiesKeyVersion'
+    - 'ManagedDiskRotationToLatestKeyVersionEnabled'
+    - 'ManagedServicesKeyVaultPropertiesKeyName'
+    - 'ManagedServicesKeyVaultPropertiesKeyVaultUri'
+    - 'ManagedServicesKeyVaultPropertiesKeyVersion'
+    - 'Authorization'
+    - 'UiDefinitionUri'
+* Added some parameters in the 'Update-AzDatabricksVNetPeering'.
+    - 'DatabricksAddressSpacePrefix'
+    - 'DatabricksVirtualNetworkId'
+    - 'RemoteAddressSpacePrefix'
+    - 'RemoteVirtualNetworkId' 
+
+#### Az.Migrate 2.2.0
+* Fixed key vault SPN Id coming as null for some users
+* Added support for Windows Server OS upgrade while migrating the server to Azure using Azure Migrate
+* Updated OsUpgradeVersion parameter for Azure Migrate
+
+#### Az.MySql 1.1.1
+* Fixed iops and high availability parameters issue
+
+#### Az.Network 6.1.0
+* Added new cmdlets to get Connection child resource of Network Virtual Appliance.
+    -'Get-AzNetworkVirtualApplianceConnection'
+* Update cmdlets to return connections in Network Virtual Appliance
+    -'Network Virtual Appliance'
+* Allowed not to provide 'Rules' in 'PSApplicationGatewayFirewallPolicyManagedRuleGroupOverride', which would return an empty 'RuleID' to be passed to NRP.
+* Add optional parameter 'AdminState' to Express Route Virtual Network Gateway
+* Fixed bug that caused 'Remove-AzApplicationGatewayAutoscaleConfiguration' to always fails
+* Added read-only property 'DefaultPredefinedSslPolicy' in PSApplicationGateway
+* Updated cmdlet to added optional parameter 'DomainNameLabelScope' to Public Ip Address
+    - 'New-AzPublicIpAddress'
+* Fixed bug where HubRoutingPreference didn't show up when running 'Get-AzRouteServer'
+* Updated 'New-AzVirtualNetworkGateway' to remove validation for 'ExtendedLocation' parameter
+
+#### Az.RecoveryServices 6.5.0
+* Added CRR support for new regions malaysiasouth, chinanorth3, chinaeast3, jioindiacentral, jioindiawest.
+* Regenerated CRR SDK. Fixed issues with SQL CRR.
+* Fixed bug with rp expiry time, making 30 days expiry time for adhoc backup as default from client side.
+* Added example to fetch pruned recovery points after modify policy.
+* Fixed the documentation for suspend backups with immutability.
+
+#### Az.RedisCache 1.8.0
+* Upgraded API version to 2023-04-01
+
+#### Az.Resources 6.8.0
+* Fixed the incorrect behavior of pagination for 'Get-AzTag'
+* Updated API version to 2022-09-01
+* Added Deployment Stacks cmdlets
+* Added support for dynamic parameters when deploying symbolic name templates.
+* Fixed 'Set-AzPolicyExemption' parameter PolicyDefinitionReferenceId not accept empty array.
+* Fixed 'Get-AzPolicyExemption' output not contain system data.
+
+#### Az.Sql 4.8.0
+* Added 'TryPlannedBeforeForcedFailover' parameter to 'Switch-AzSqlDatabaseFailoverGroup'
+* Added new cmdlets for managed database move and copy operations
+    - 'Copy-AzSqlInstanceDatabase'
+    - 'Move-AzSqlInstanceDatabase'
+    - 'Complete-AzSqlInstanceDatabaseCopy'
+    - 'Stop-AzSqlInstanceDatabaseCopy'
+    - 'Complete-AzSqlInstanceDatabaseMove'
+    - 'Stop-AzSqlInstanceDatabaseMove'
+    - 'Get-AzSqlInstanceDatabaseMoveOperation'
+    - 'Get-AzSqlInstanceDatabaseCopyOperation'
+
+#### Az.Storage 5.8.0
+* Supported TierToCold and TierToHot in Storage account management policy 
+    - 'Add-AzStorageAccountManagementPolicyAction'
+* Supported Blob Tier Cold
+    - 'Copy-AzStorageBlob'
+    - 'Set-AzStorageBlobContent' 
+    - 'Start-AzStorageBlobCopy'
+* Migrated the following Azure Queue dataplane cmdlets from 'Microsoft.Azure.Storage.Queue' to 'Azure.Storage.Queue'
+    - 'New-AzStorageQueueSASToken'
+* Add warning messages for an upcoming breaking change when creating SAS token
+    - 'New-AzStorageBlobSasToken'
+    - 'New-AzStorageContainerSasToken'
+    - 'New-AzStorageAccountSasToken'
+    - 'New-AzStorageContext'
+    - 'New-AzStorageFileSasToken'
+    - 'New-AzStorageShareSasToken'
+    - 'New-AzStorageQueueSasToken'
+    - 'New-AzStorageTableSasToken'
+    - 'New-AzDataLakeGen2SasToken'
+* Add a warning message for an upcoming breaking change when creating a storage account 
+    - 'New-AzStorageAccount'
+
+#### Az.StorageMover 1.0.1
+* Fix the issue of System.Management.Automation.Internal.Host.InternalHost conflicting with system parameter System.Management.Automation.Internal.Host.InternalHost
+
+#### Az.Synapse 3.0.1
+* Fixed the issue for 'Start-AzSynapseTrigger/Stop-AzSynapseTrigger' to not throw exception when Request Status is 202
+
+#### Az.TrafficManager 1.2.1
+Added a new API 'CheckTrafficManagerNameAvailabilityV2'.
+
+#### Az.Websites 3.0.1
+* Increased timeout for Publish-AzWebApp command
+* Fixed Set-AzWebApp issue with 'Set-AzWebApp' when piping in Get-AzWebApp object [#21820]
+* Added support for the PremiumMV3 tier to 'New-AzAppServicePlan' [#21933]
+
 ## 10.0.0 - June 2023
 #### Az.Accounts 2.12.3
 * Updated System.Security.Permissions to 4.7.0.

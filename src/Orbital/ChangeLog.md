@@ -18,6 +18,8 @@
         - Additional information about change #1
 -->
 ## Upcoming Release
+
+## Version 0.1.1
 * Upgraded API version to 2022-11-01
 * Remove 'Name' and 'InputObject' syntax from the 'Get-AzOrbitalAvailableGroundStation' cmdlet
 * Require 'NetworkConfigurationSubnetId' and 'Link' parameters in 'New-AzOrbitalContactProfile' cmdlet
